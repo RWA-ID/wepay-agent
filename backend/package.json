@@ -13,7 +13,6 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@moonpay/cli": "latest",
     "@open-wallet-standard/core": "^1.2.4",
     "@prisma/client": "^5.0.0",
     "cors": "^2.8.5",

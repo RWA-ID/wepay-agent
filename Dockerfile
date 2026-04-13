@@ -4,7 +4,7 @@ WORKDIR /app
 # Install dependencies
 FROM base AS deps
 COPY backend/package.json ./
-RUN npm install --frozen-lockfile
+RUN npm install
 
 # Build
 FROM base AS builder
