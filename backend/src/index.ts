@@ -17,6 +17,9 @@ import { initTelegramBot } from "./services/telegram.service.js";
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
+// Trust Railway/proxy headers for rate limiting and IP detection
+app.set("trust proxy", 1);
+
 // ── Security middleware ────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL ?? "*", credentials: true }));
