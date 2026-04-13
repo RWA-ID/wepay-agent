@@ -25,4 +25,4 @@ COPY backend/package.json ./
 
 EXPOSE 3001
 
-CMD ["node", "--enable-source-maps", "dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && echo '=== dist ===' && ls dist/ && echo '=== starting ===' && node --enable-source-maps dist/index.js"]
