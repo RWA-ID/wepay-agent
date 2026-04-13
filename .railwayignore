@@ -1,0 +1,12 @@
+node_modules/
+**/node_modules/
+frontend/
+contracts/
+agent/
+frontend/.next/
+**/.env
+.env
+.env.*
+contracts/cache/
+contracts/artifacts/
+contracts/out/

@@ -6,6 +6,8 @@ import { pinUserData } from "../utils/ipfs.js";
 const PINATA_API = "https://agents.pinata.cloud/v0";
 // ClawHub slug for the lobstercash skill (crossmint/lobstercash)
 const LOBSTER_HUB_SLUG = "crossmint/lobstercash";
+// IPFS CID for the custom WePay bill-pay skill (set after running scripts/pin-wepay-skill.ts)
+const WEPAY_SKILL_CID = process.env.WEPAY_SKILL_CID ?? "";
 
 function pinataHeaders() {
   return {
@@ -46,14 +48,22 @@ export class PinataAgentService {
     await db.user.update({ where: { id: userId }, data: { pinataAgentId: agentId } });
     logger.info("Pinata agent provisioned", { userId, agentId });
 
-    // 2. Install lobstercash skill (non-fatal — agent still works without it,
-    //    fiat payments will just fail until manually installed)
-    try {
-      await PinataAgentService.installLobsterSkill(agentId);
-      logger.info("Lobstercash skill installed", { userId, agentId });
-    } catch (err) {
-      logger.warn("Lobstercash skill installation failed — continuing without it", { userId, agentId, err });
-    }
+    // 2. Install skills (non-fatal — agent still works without them)
+    const skillInstalls = [
+      // WePay bill-pay custom skill (CID pinned via scripts/pin-wepay-skill.ts)
+      WEPAY_SKILL_CID
+        ? PinataAgentService.attachSkillCid(agentId, WEPAY_SKILL_CID)
+            .then(() => logger.info("WePay bill-pay skill attached", { userId, agentId }))
+            .catch((err: unknown) => logger.warn("WePay skill attach failed", { userId, agentId, err }))
+        : Promise.resolve().then(() => logger.warn("WEPAY_SKILL_CID not set — skipping custom skill", { userId })),
+
+      // Lobstercash ClawHub skill for fiat virtual card payments
+      PinataAgentService.installLobsterSkill(agentId)
+        .then(() => logger.info("Lobstercash skill installed", { userId, agentId }))
+        .catch((err: unknown) => logger.warn("Lobstercash skill installation failed", { userId, agentId, err })),
+    ];
+
+    await Promise.allSettled(skillInstalls);
 
     return { agentId };
   }
@@ -104,6 +114,21 @@ export class PinataAgentService {
 
     if (!attachRes.ok) {
       throw new Error(`Skill attach failed: ${await attachRes.text()}`);
+    }
+  }
+
+  /**
+   * Attach a custom skill by IPFS CID directly to an agent.
+   * Used for the WePay bill-pay skill pinned via scripts/pin-wepay-skill.ts.
+   */
+  static async attachSkillCid(agentId: string, skillCid: string): Promise<void> {
+    const res = await fetch(`${PINATA_API}/agents/${agentId}/skills`, {
+      method: "POST",
+      headers: pinataHeaders(),
+      body: JSON.stringify({ skillCids: [skillCid] }),
+    });
+    if (!res.ok) {
+      throw new Error(`Skill attach failed for CID ${skillCid}: ${await res.text()}`);
     }
   }
 

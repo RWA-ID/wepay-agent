@@ -11,6 +11,7 @@ RUN npm install
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY backend/ .
+COPY agent/skills/wepay-bill-pay/skill.md ./src/skills/wepay-bill-pay.md
 RUN npx prisma generate
 RUN npm run build
 
