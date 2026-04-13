@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Hardhat / Foundry
+contracts/cache/
+contracts/artifacts/
+contracts/typechain-types/
+contracts/out/
+contracts/cache_forge/
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+
+# Deployments (keep JSONs but not private keys)
+*.pem
+*.key
+
+# Pinata
+.pinatarc
+
+# IDE
+.idea/
+.vscode/

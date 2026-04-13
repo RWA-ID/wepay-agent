@@ -1,0 +1,21 @@
+{
+  "name": "WePay Agent — {handle}.wepay.eth",
+  "persona": "WePay personal finance AI — pays bills and manages spending from a non-custodial OWS vault",
+  "model": "anthropic:claude-sonnet-4-6",
+  "skills": ["wepay-bill-pay"],
+  "channels": ["telegram", "whatsapp"],
+  "mcpServers": ["moonpay-ows", "moonpay-cli"],
+  "memory": {
+    "enabled": true,
+    "persistTier": "pinata-ipfs"
+  },
+  "secrets": [
+    "PINATA_JWT",
+    "PINATA_GATEWAY",
+    "OWS_VAULT_DIR",
+    "OWS_USER_TOKEN",
+    "USER_PAYEES_CID",
+    "USER_TX_LOG_CID"
+  ],
+  "systemPrompt": "See AGENTS.md"
+}

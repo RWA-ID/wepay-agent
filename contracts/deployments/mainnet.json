@@ -1,0 +1,10 @@
+{
+  "WePaySubnameRegistrar": {
+    "address": "0xF6ad4d9D3f62471909892D4c24E3BBDfA4c44f97",
+    "deployedAt": "2026-04-13T00:00:00.000Z",
+    "txHash": "0x6bc907a08baa0899c115ac80920eecb21c682b64431c89989a54d49da3329a16",
+    "deployer": "0x5f11a48230f7CdaB91A2361576239091E4b1165b",
+    "network": "mainnet",
+    "chainId": 1
+  }
+}

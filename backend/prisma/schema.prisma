@@ -1,0 +1,88 @@
+// This is your Prisma schema file.
+// Run: npm run db:generate  — after any schema change
+// Run: npm run db:migrate   — to apply migrations in dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  // Access control (MoonPay Commerce subscription)
+  subscriptionId      String?   @unique  // MoonPay Commerce subscription ID
+  subscriptionStatus  String?            // "active" | "cancelled" | "past_due" | "payment_failed"
+  accessExpiresAt     DateTime?          // currentPeriodEnd from last webhook
+  lastPaymentAt       DateTime?
+  lastMoonpayTxId     String?
+  // OWS vault
+  vaultAddress        String?   @unique
+  encryptedVaultBlob  String?   // AES-256-GCM encrypted vault blob
+  owsUserToken        String?   // OWS token for agent access
+  vaultCreatedAt      DateTime?
+  // ENS subdomain
+  handle              String?   @unique
+  ensClaimed          Boolean   @default(false)
+  // Pinata IPFS CIDs for user data
+  payeesCid           String?
+  txLogCid            String?
+  policiesCid         String?
+  // Pinata agent
+  pinataAgentId       String?
+  // Messaging
+  telegramChatId      String?   @unique
+  whatsappPhoneId     String?   @unique
+  // Timestamps
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  payees              Payee[]
+  transactions        Transaction[]
+}
+
+model Payee {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  address        String   // 0x address or ENS name
+  category       String   // "utilities" | "rent" | "food" | "other"
+  typicalAmount  Float?
+  currency       String   @default("USDC")
+  chain          String   @default("eip155:8453")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Transaction {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payeeId        String?
+  amount         Float
+  currency       String   @default("USDC")
+  chain          String   @default("eip155:8453")
+  txHash         String?  @unique
+  status         String   @default("pending") // "pending" | "confirmed" | "failed"
+  category       String?
+  memo           String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model TelegramLinkToken {
+  token      String   @id
+  userId     String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+}

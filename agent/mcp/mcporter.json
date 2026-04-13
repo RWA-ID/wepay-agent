@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "moonpay-cli": {
+      "type": "stdio",
+      "command": "mp",
+      "args": ["mcp"],
+      "description": "MoonPay CLI: execute transfers, swaps, onramp/offramp. Auth via `mp login` (credentials stored at ~/.config/moonpay/credentials.json)."
+    }
+  }
+}
