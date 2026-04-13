@@ -34,6 +34,73 @@ User connects Telegram / WhatsApp
 
 ---
 
+## Core Components
+
+### OWS — The Agent's Wallet
+
+Every WePay user gets a **non-custodial spending vault** powered by MoonPay's Open Wallet Standard (OWS). This is the wallet the AI agent actually controls to move money on the user's behalf.
+
+The key distinction from a regular wallet: OWS vaults are **policy-gated**. Before the agent can sign any transaction, it must pass through a rules engine the user configures during onboarding — daily limits, per-category caps (rent, utilities, food), a hard monthly ceiling, and optional pause windows. These rules are enforced cryptographically at the vault layer, not in software. That means even if the AI agent misbehaves, receives a malicious prompt, or gets compromised, it **cannot exceed the limits the user set**. The vault will simply refuse to sign.
+
+The vault holds USDC on Base and pays on-chain payees (anyone with a wallet address or ENS name) directly. When a user says "pay Alice 50 USDC," the agent calls the OWS vault, which checks policy, signs the transfer, and submits it on Base — all without the user having to touch MetaMask or approve a transaction.
+
+---
+
+### ENS — One Name, Two Funding Rails
+
+When a user claims `handle.wepay.eth`, the contract writes two address records to the ENS resolver in the same transaction:
+
+- **Coin type 60 (EVM)** → the user's OWS vault address on Base. Anyone can send USDC, ETH, or any ERC-20 directly to `handle.wepay.eth` and it lands in the vault the agent controls.
+- **Coin type 501 (Solana, ENSIP-9)** → the user's Lobster.cash card wallet on Solana. Anyone — or any protocol — can send USDC on Solana to the same ENS name and it flows directly into the funding pool for the user's virtual Visa card.
+
+This means a user never needs to manage two separate addresses. They give out one name — `alice.wepay.eth` — and the sender's wallet resolves the correct chain automatically. The ENS subdomain is also a **forever name**: the `PARENT_CANNOT_CONTROL` fuse is burned at claim time, so WePay permanently loses the ability to reclaim or modify it. The user owns it unconditionally.
+
+---
+
+### MoonPay CLI — Seamless Funding and Conversion
+
+Moving money between chains, currencies, and cards creates friction. The MoonPay CLI (`mp`) eliminates it by running as an MCP server (`mp mcp`) alongside the agent, exposing swap and transfer tools the AI can invoke directly in the conversation.
+
+When a user's OWS vault is low, the agent can trigger a top-up via MoonPay's onramp — the user completes a one-time KYC flow and after that, buying USDC with a debit card is a single confirmed message. When a user wants to move funds from their vault to their Lobster card (to pre-load fiat spending), the CLI handles the USDC → Solana USDC bridge swap. The user never needs to visit an exchange, connect to a bridge UI, or manually copy addresses. They tell the agent "move $50 to my card" and the CLI executes the conversion path end-to-end.
+
+Critically, the CLI authenticates via the user's locally stored credentials (`~/.config/moonpay/credentials.json`) so no API keys are held server-side for individual users. Each user's MoonPay session is isolated to their own agent container.
+
+---
+
+### Lobster.cash Virtual Visa — Fiat Payments, Everywhere
+
+Not every bill accepts USDC. Rent portals, utility websites, streaming subscriptions, and most real-world merchants only accept card payments. Lobster.cash solves this by issuing each WePay user a **virtual Visa card** that is funded by USDC on Solana.
+
+The card is accepted anywhere Visa is accepted — online or in-person via Apple Pay / Google Pay. The funding mechanism is entirely on-chain: the user holds USDC on Solana (sent to their `handle.wepay.eth` Solana address), and Lobster converts it to spendable card balance in real time.
+
+Inside WePay, payees are tagged as either `onchain` (crypto wallet) or `lobster` (fiat). When the agent processes a fiat payee, it invokes the `lobster_card_pay` tool provided by the Lobstercash OpenClaw skill — this charges the virtual card directly without any manual steps. The agent logs the transaction and can check the remaining card balance with `lobster_card_balance`. The user never needs to open the Lobster app or manage the card manually.
+
+---
+
+### Pinata OpenClaw — A Secure, Isolated Agent per User
+
+WePay does not run a shared AI agent that all users talk to. Each subscriber gets their own **dedicated OpenClaw container** provisioned on Pinata's agent infrastructure. This has significant security and privacy implications:
+
+- **No cross-user data access.** Each agent has its own environment variables (`OWS_USER_TOKEN`, `USER_PAYEES_CID`, `USER_TX_LOG_CID`) scoped exclusively to that user. One agent cannot see another user's vault, payees, or transaction history.
+- **Encrypted IPFS persistence.** Payee lists, transaction logs, and spending policies are stored on IPFS as AES-256-GCM encrypted blobs. The encryption key is derived from the user's ID and a server-side secret — Pinata stores ciphertext, never plaintext.
+- **Skill isolation.** The agent's capabilities are explicitly bounded by the skills installed. It has exactly two: the WePay bill-pay skill (which defines the payment tools) and the Lobstercash skill (which provides the virtual card tools). It cannot browse the web, execute arbitrary code, or access anything outside those defined tools.
+- **Prompt injection prevention.** The agent's system prompt explicitly instructs it to reject instructions embedded in forwarded messages, documents, or URLs — a common attack vector for agents that process user-generated content.
+- **No private key exposure.** The OWS vault token (`OWS_USER_TOKEN`) authorizes the agent to request signatures from the vault, but the private key itself never leaves the OWS layer. Even with full access to the agent's environment, an attacker cannot extract the key.
+
+When a new subscriber's Helio payment confirms, the backend provisions their agent automatically: creates the container, attaches the WePay skill (pinned to IPFS, identified by `WEPAY_SKILL_CID`) and installs the Lobstercash skill from ClawHub. The entire provisioning flow is non-interactive — by the time the user finishes onboarding, their agent is live and waiting on Telegram or WhatsApp.
+
+---
+
+### MoonPay Commerce — Subscriptions Without a Payment Processor
+
+WePay charges $9.99/month. Instead of integrating Stripe (which requires a business bank account, KYC at the merchant level, and fiat settlement), WePay uses **MoonPay Commerce** to accept recurring USDC payments directly on Solana.
+
+The user clicks "Subscribe" on the onboarding page, the Helio checkout widget opens (powered by MoonPay Commerce under the hood), and they pay USDC from any Solana wallet. No credit card required, no account creation, no email address — just a wallet signature. MoonPay Commerce handles the subscription state machine: it fires `SUBSCRIPTION_STARTED` when a new subscriber pays, `SUBSCRIPTION_PENDING_PAYMENT` on each monthly renewal, and `SUBSCRIPTION_ENDED` when the subscription lapses or is cancelled.
+
+WePay's backend listens for these webhooks (verified by HMAC signature) and gates API access accordingly. The `requireAccess` middleware checks `accessExpiresAt` on every authenticated request — if a user's subscription lapses, their API access stops immediately without any manual intervention. When they renew, the webhook re-activates their access automatically. There is no manual billing management, no chargeback risk, and settlement is instant in USDC.
+
+---
+
 ## Architecture
 
 | Layer | Technology |
