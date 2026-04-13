@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SubdomainClaimer } from "@/components/SubdomainClaimer";
 
-export default function SubdomainPage() {
+function SubdomainContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const vaultAddress = searchParams.get("vault") as `0x${string}` | null;
@@ -40,5 +41,13 @@ export default function SubdomainPage() {
         Skip for now
       </button>
     </main>
+  );
+}
+
+export default function SubdomainPage() {
+  return (
+    <Suspense fallback={null}>
+      <SubdomainContent />
+    </Suspense>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TelegramConnect } from "@/components/TelegramConnect";
 import { WhatsAppConnect } from "@/components/WhatsAppConnect";
 
-export default function ConnectPage() {
+function ConnectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const handle = searchParams.get("handle");
@@ -34,5 +35,13 @@ export default function ConnectPage() {
         {handle ? `Go to Dashboard — ${handle}.wepay.eth` : "Go to Dashboard"}
       </button>
     </main>
+  );
+}
+
+export default function ConnectPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConnectContent />
+    </Suspense>
   );
 }

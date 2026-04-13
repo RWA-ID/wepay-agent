@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PolicyEditor } from "@/components/PolicyEditor";
 import { api } from "@/lib/api";
 
-export default function PoliciesPage() {
+function PoliciesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const vaultAddress = searchParams.get("vault");
@@ -36,5 +37,13 @@ export default function PoliciesPage() {
         Skip for now
       </button>
     </main>
+  );
+}
+
+export default function PoliciesPage() {
+  return (
+    <Suspense fallback={null}>
+      <PoliciesContent />
+    </Suspense>
   );
 }
