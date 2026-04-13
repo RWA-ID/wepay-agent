@@ -122,12 +122,18 @@ export class PinataAgentService {
    * Returns the CID to set as wepay.eth contenthash.
    */
   static async deployFrontend(buildDir: string): Promise<string> {
-    const result = await pinata.upload.public.directory(buildDir, {
-      metadata: {
-        name: "wepay-frontend",
-        keyvalues: { version: new Date().toISOString() },
-      },
-    });
+    const result = await pinata.upload.public.fileArray(
+      await Promise.all(
+        (await import("fs")).readdirSync(buildDir, { recursive: true, withFileTypes: true })
+          .filter(f => f.isFile())
+          .map(async f => {
+            const filePath = `${f.parentPath ?? f.path}/${f.name}`;
+            const buffer = (await import("fs")).readFileSync(filePath);
+            return new File([buffer], filePath.replace(buildDir + "/", ""));
+          })
+      ),
+      { metadata: { name: "wepay-frontend", keyvalues: { version: new Date().toISOString() } } }
+    );
     logger.info("Frontend deployed to IPFS", { cid: result.cid });
     return result.cid;
   }

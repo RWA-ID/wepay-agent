@@ -28,8 +28,8 @@ export async function pinUserData(userId: string, dataType: string, data: unknow
  * Fetch and decrypt user data from IPFS by CID.
  */
 export async function fetchUserData<T>(userId: string, cid: string): Promise<T> {
-  const response = await pinata.gateways.get(cid);
+  const response = await pinata.gateways.public.get(cid);
   const key = deriveUserKey(userId, process.env.VAULT_ENCRYPTION_SECRET!);
-  const decrypted = decrypt(response as string, key);
+  const decrypted = decrypt(response.data as string, key);
   return JSON.parse(decrypted) as T;
 }

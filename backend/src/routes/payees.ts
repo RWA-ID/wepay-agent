@@ -43,8 +43,9 @@ payeesRouter.post("/", async (req: Request, res: Response) => {
 
 /** PUT /payees/:id — Update a payee */
 payeesRouter.put("/:id", async (req: Request, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const payee = await db.payee.findFirst({
-    where: { id: req.params.id, userId: req.user.id },
+    where: { id, userId: req.user.id },
   });
 
   if (!payee) {
@@ -55,7 +56,7 @@ payeesRouter.put("/:id", async (req: Request, res: Response) => {
   }
 
   const updated = await db.payee.update({
-    where: { id: req.params.id },
+    where: { id },
     data: req.body,
   });
 
@@ -64,8 +65,9 @@ payeesRouter.put("/:id", async (req: Request, res: Response) => {
 
 /** DELETE /payees/:id — Delete a payee */
 payeesRouter.delete("/:id", async (req: Request, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const payee = await db.payee.findFirst({
-    where: { id: req.params.id, userId: req.user.id },
+    where: { id, userId: req.user.id },
   });
 
   if (!payee) {
@@ -75,6 +77,6 @@ payeesRouter.delete("/:id", async (req: Request, res: Response) => {
     });
   }
 
-  await db.payee.delete({ where: { id: req.params.id } });
+  await db.payee.delete({ where: { id } });
   res.json({ success: true, data: null });
 });

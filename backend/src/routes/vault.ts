@@ -28,11 +28,9 @@ vaultRouter.post("/create", async (req: Request, res: Response) => {
   }
 
   try {
-    const { address, encryptedSeed } = await OWSService.createVault(req.user.id);
+    const { address, agentToken } = await OWSService.createVault(req.user.id);
 
-    // The encrypted seed is returned ONCE — the client must show it to the user
-    // and confirm they've saved it. After this response, it is not stored server-side.
-    res.json({ success: true, data: { address, encryptedSeed, oneTimeDelivery: true } });
+    res.json({ success: true, data: { address, agentToken, oneTimeDelivery: true } });
   } catch (err) {
     logger.error("Vault creation failed", { userId: req.user.id, err });
     res.status(500).json({
