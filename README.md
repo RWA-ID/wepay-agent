@@ -93,7 +93,7 @@ When a new subscriber's Helio payment confirms, the backend provisions their age
 
 ### MoonPay Commerce — Subscriptions Without a Payment Processor
 
-WePay charges $9.99/month. Instead of integrating Stripe (which requires a business bank account, KYC at the merchant level, and fiat settlement), WePay uses **MoonPay Commerce** to accept recurring USDC payments directly on Solana.
+WePay charges $19.99/month. Instead of integrating Stripe (which requires a business bank account, KYC at the merchant level, and fiat settlement), WePay uses **MoonPay Commerce** to accept recurring USDC payments directly on Solana.
 
 The user clicks "Subscribe" on the onboarding page, the Helio checkout widget opens (powered by MoonPay Commerce under the hood), and they pay USDC from any Solana wallet. No credit card required, no account creation, no email address — just a wallet signature. MoonPay Commerce handles the subscription state machine: it fires `SUBSCRIPTION_STARTED` when a new subscriber pays, `SUBSCRIPTION_PENDING_PAYMENT` on each monthly renewal, and `SUBSCRIPTION_ENDED` when the subscription lapses or is cancelled.
 
