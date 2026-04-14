@@ -14,10 +14,10 @@ import { setAuthToken, getAuthToken } from "@/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type Step = "subscribe" | "vault" | "ens" | "setup";
+type Step = "subscribe" | "vault" | "solana" | "ens" | "setup";
 
-const STEPS: Step[] = ["subscribe", "vault", "ens", "setup"];
-const STEP_LABELS = ["Subscribe", "Create Vault", "Claim ENS", "Set Up Agent"];
+const STEPS: Step[] = ["subscribe", "vault", "solana", "ens", "setup"];
+const STEP_LABELS = ["Subscribe", "Create Vault", "Solana Wallet", "Claim ENS", "Set Up Agent"];
 
 // ── Step indicator ─────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ function VaultStep({ onComplete }: { onComplete: (addr: string) => void }) {
   return (
     <div>
       <div className="fade-up" style={{ marginBottom: "32px" }}>
-        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 2 of 4</div>
+        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 2 of 5</div>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", marginBottom: "8px" }}>
           Create your vault
         </h1>
@@ -146,27 +146,107 @@ function VaultStep({ onComplete }: { onComplete: (addr: string) => void }) {
   );
 }
 
-// ── Step 3: ENS ────────────────────────────────────────────────────────────
+// ── Step 3: Solana Wallet ──────────────────────────────────────────────────
 
-function EnsStep({ vaultAddress, onClaimed, onSkip }: { vaultAddress: `0x${string}`; onClaimed: (handle: string) => void; onSkip: () => void }) {
-  const [solanaAddress, setSolanaAddress] = useState("");
-  const [solanaValid, setSolanaValid] = useState<boolean | null>(null);
+function SolanaWalletStep({ onComplete, onSkip }: { onComplete: (address: string) => void; onSkip: () => void }) {
+  const [address, setAddress] = useState("");
+  const [valid, setValid] = useState<boolean | null>(null);
 
-  function validateSolana(val: string) {
-    // Solana addresses are base58, 32–44 chars
+  function validate(val: string) {
     const ok = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val);
-    setSolanaValid(val.length === 0 ? null : ok);
+    setValid(val.length === 0 ? null : ok);
   }
 
   return (
     <div>
       <div className="fade-up" style={{ marginBottom: "32px" }}>
-        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 3 of 4</div>
+        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 3 of 5</div>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", marginBottom: "8px" }}>
+          Link your Solana wallet
+        </h1>
+        <p style={{ fontSize: "16px", color: "var(--text-2)", lineHeight: 1.6 }}>
+          Your ENS subdomain will store both your Ethereum and Solana addresses — so anyone can pay you USDC on either chain using just <strong style={{ fontFamily: "var(--font-mono)", color: "var(--blue-light)", fontSize: "14px" }}>yourname.wepay.eth</strong>.
+        </p>
+      </div>
+
+      {/* Wallet options */}
+      <div className="fade-up-1" style={{ display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap" }}>
+        {[
+          { name: "Phantom", color: "#9945FF" },
+          { name: "Backpack", color: "#E33E3F" },
+          { name: "Ledger", color: "#000" },
+        ].map(({ name, color }) => (
+          <div key={name} style={{
+            padding: "6px 14px", borderRadius: "var(--r-sm)",
+            background: "var(--bg-2)", border: "1px solid var(--border)",
+            fontSize: "12px", fontWeight: 600, color,
+          }}>{name}</div>
+        ))}
+        <div style={{
+          padding: "6px 14px", borderRadius: "var(--r-sm)",
+          background: "var(--bg-2)", border: "1px solid var(--border)",
+          fontSize: "12px", color: "var(--text-3)",
+        }}>+ any wallet</div>
+      </div>
+
+      <div className="fade-up-1" style={{ marginBottom: "24px" }}>
+        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--text)", marginBottom: "6px" }}>
+          Solana wallet address{" "}
+          <span style={{ fontWeight: 400, color: "var(--text-3)" }}>(optional)</span>
+        </label>
+        <p style={{ fontSize: "12px", color: "var(--text-2)", marginBottom: "8px", lineHeight: 1.5 }}>
+          Open your wallet app, copy your Solana public key, and paste it here. This will be embedded in your ENS name so people can send you USDC on Solana.
+        </p>
+        <input
+          value={address}
+          onChange={(e) => { setAddress(e.target.value.trim()); validate(e.target.value.trim()); }}
+          placeholder="e.g. 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83hfHsz..."
+          style={{
+            width: "100%", padding: "10px 12px",
+            background: "var(--bg-2)",
+            border: `1px solid ${valid === false ? "var(--error)" : valid === true ? "var(--green)" : "var(--border)"}`,
+            borderRadius: "var(--r-sm)", color: "var(--text)", fontSize: "13px",
+            fontFamily: "var(--font-mono)", outline: "none",
+          }}
+        />
+        {valid === false && (
+          <p style={{ fontSize: "11px", color: "var(--error)", marginTop: "4px" }}>Invalid Solana address — must be base58, 32–44 characters</p>
+        )}
+        {valid === true && (
+          <p style={{ fontSize: "11px", color: "var(--green)", marginTop: "4px" }}>✓ Valid — will be embedded in your ENS name</p>
+        )}
+      </div>
+
+      <div className="fade-up-2" style={{ display: "flex", gap: "12px" }}>
+        <button
+          onClick={() => onComplete(valid === true ? address : "")}
+          disabled={valid === false}
+          className="btn-primary"
+          style={{ flex: 1, padding: "14px 0", fontSize: "15px", opacity: valid === false ? 0.5 : 1 }}
+        >
+          {valid === true ? "Save & Continue" : "Continue without Solana"}
+        </button>
+      </div>
+
+      <button onClick={onSkip} style={{ marginTop: "12px", background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "var(--text-3)", textDecoration: "underline", padding: 0, display: "block" }}>
+        Skip for now
+      </button>
+    </div>
+  );
+}
+
+// ── Step 4: ENS ────────────────────────────────────────────────────────────
+
+function EnsStep({ vaultAddress, solanaAddress, onClaimed, onSkip }: { vaultAddress: `0x${string}`; solanaAddress?: string; onClaimed: (handle: string) => void; onSkip: () => void }) {
+  return (
+    <div>
+      <div className="fade-up" style={{ marginBottom: "32px" }}>
+        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 4 of 5</div>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", marginBottom: "8px" }}>
           Claim your ENS subdomain
         </h1>
         <p style={{ fontSize: "16px", color: "var(--text-2)", lineHeight: 1.6 }}>
-          Your universal payment address. Share <strong style={{ fontFamily: "var(--font-mono)", color: "var(--blue-light)", fontSize: "14px" }}>yourname.wepay.eth</strong> to receive USDC on Base <em>or</em> fund your Lobster card on Solana — all from one name.
+          Your universal payment address. Share <strong style={{ fontFamily: "var(--font-mono)", color: "var(--blue-light)", fontSize: "14px" }}>yourname.wepay.eth</strong> to receive USDC on Base{solanaAddress ? " or Solana" : ""} — all from one name.
         </p>
       </div>
 
@@ -182,41 +262,26 @@ function EnsStep({ vaultAddress, onClaimed, onSkip }: { vaultAddress: `0x${strin
         </p>
       </div>
 
-      {/* Lobster Solana address */}
-      <div className="fade-up-1" style={{ marginBottom: "24px" }}>
-        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--text)", marginBottom: "6px" }}>
-          Lobster card Solana address{" "}
-          <span style={{ fontWeight: 400, color: "var(--text-3)" }}>(optional)</span>
-        </label>
-        <p style={{ fontSize: "12px", color: "var(--text-2)", marginBottom: "8px", lineHeight: 1.5 }}>
-          Found in your{" "}
-          <a href="https://lobster.cash" target="_blank" rel="noopener noreferrer" style={{ color: "var(--blue-light)" }}>Lobster.cash</a>{" "}
-          account. Embeds a Solana record in your ENS name so anyone can fund your virtual card by sending USDC on Solana to <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>yourname.wepay.eth</span>.
-        </p>
-        <input
-          value={solanaAddress}
-          onChange={(e) => { setSolanaAddress(e.target.value.trim()); validateSolana(e.target.value.trim()); }}
-          placeholder="e.g. 7xKXtg2CW87d97TXJSDpbD5jBkheTqA..."
-          style={{
-            width: "100%", padding: "10px 12px",
-            background: "var(--bg-2)",
-            border: `1px solid ${solanaValid === false ? "var(--error)" : solanaValid === true ? "var(--green)" : "var(--border)"}`,
-            borderRadius: "var(--r-sm)", color: "var(--text)", fontSize: "13px",
-            fontFamily: "var(--font-mono)", outline: "none",
-          }}
-        />
-        {solanaValid === false && (
-          <p style={{ fontSize: "11px", color: "var(--error)", marginTop: "4px" }}>Invalid Solana address — must be base58, 32–44 characters</p>
-        )}
-        {solanaValid === true && (
-          <p style={{ fontSize: "11px", color: "var(--green)", marginTop: "4px" }}>✓ Valid Solana address — will be embedded in your ENS name</p>
-        )}
-      </div>
+      {solanaAddress && (
+        <div className="fade-up-1" style={{
+          display: "flex", gap: "10px", padding: "10px 14px",
+          background: "rgba(153,69,255,0.06)", border: "1px solid rgba(153,69,255,0.2)",
+          borderRadius: "var(--r-sm)", marginBottom: "24px",
+        }}>
+          <span style={{ fontSize: "14px", flexShrink: 0 }}>⚡</span>
+          <p style={{ fontSize: "12px", color: "var(--text-2)", lineHeight: 1.5 }}>
+            <strong style={{ color: "#9945FF" }}>Solana address linked</strong> — will be embedded in your ENS name
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-3)", display: "block", marginTop: "2px" }}>
+              {solanaAddress.slice(0, 20)}…{solanaAddress.slice(-6)}
+            </span>
+          </p>
+        </div>
+      )}
 
       <div className="fade-up-2">
         <SubdomainClaimer
           owsVaultAddress={vaultAddress}
-          solanaCardAddress={solanaValid === true ? solanaAddress : undefined}
+          solanaAddress={solanaAddress}
           onClaimed={onClaimed}
         />
       </div>
@@ -272,7 +337,7 @@ function SetupStep({ ensHandle, onComplete }: { ensHandle: string; onComplete: (
   return (
     <div>
       <div className="fade-up" style={{ marginBottom: "32px" }}>
-        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 4 of 4</div>
+        <div className="badge badge-blue" style={{ marginBottom: "16px" }}>Step 5 of 5</div>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", marginBottom: "8px" }}>
           Set up your agent
         </h1>
@@ -310,114 +375,35 @@ function SetupStep({ ensHandle, onComplete }: { ensHandle: string; onComplete: (
         </div>
       </div>
 
-      {/* ─ Section 2: Lobster card ─ */}
+      {/* ─ Section 2: Virtual card (coming soon) ─ */}
       <div className="fade-up-1" style={{ marginBottom: "36px" }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 700, color: "var(--text)", marginBottom: "6px" }}>
-          Set up your Lobster card
-        </h2>
-        <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "16px" }}>
-          Most bills — rent, utilities, subscriptions — only accept regular payments. Lobster.cash gives your agent a virtual Visa card funded by USDC so it can pay <em>any</em> website or service.
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 700, color: "var(--text)", margin: 0 }}>
+            Virtual card
+          </h2>
+          <span style={{
+            padding: "3px 10px", borderRadius: "999px",
+            background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.3)",
+            fontSize: "11px", fontWeight: 600, color: "#f97316", fontFamily: "var(--font-mono)",
+          }}>Coming soon</span>
+        </div>
+        <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "16px", lineHeight: 1.6 }}>
+          Pay rent, utilities, and subscriptions with a virtual card funded by your USDC vault — no crypto knowledge needed for merchants. We're evaluating providers including Visa Intelligent Commerce.
         </p>
 
-        {/* CSS debit card */}
         <div style={{
-          width: "100%", maxWidth: "340px",
-          height: "196px",
-          background: "linear-gradient(135deg, #FF6B35 0%, #FF4500 40%, #FF8C00 100%)",
-          borderRadius: "16px",
-          padding: "24px",
-          position: "relative",
-          overflow: "hidden",
-          marginBottom: "16px",
-          boxShadow: "0 8px 32px rgba(255,107,53,0.35), 0 2px 8px rgba(0,0,0,0.3)",
+          padding: "20px 24px",
+          background: "var(--bg-2)", border: "1px dashed rgba(249,115,22,0.3)",
+          borderRadius: "var(--r-md)",
+          display: "flex", gap: "16px", alignItems: "flex-start",
         }}>
-          {/* Glare overlay */}
-          <div style={{
-            position: "absolute", top: "-60px", right: "-60px",
-            width: "200px", height: "200px",
-            background: "radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }} />
-          {/* Chip */}
-          <div style={{
-            width: "38px", height: "28px",
-            background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
-            borderRadius: "5px",
-            marginBottom: "20px",
-            boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)",
-          }} />
-          {/* Card number */}
-          <p style={{
-            fontFamily: "var(--font-mono)", fontSize: "15px", letterSpacing: "3px",
-            color: "rgba(255,255,255,0.9)", marginBottom: "16px",
-          }}>
-            •••• •••• •••• AGENT
-          </p>
-          {/* Bottom row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <div>
-              <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)", marginBottom: "2px", letterSpacing: "1px" }}>ENS</p>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "white", fontWeight: 600 }}>
-                {ensHandle ? `${ensHandle}.wepay.eth` : "name.wepay.eth"}
-              </p>
-            </div>
-            {/* Visa-style circles */}
-            <div style={{ display: "flex" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.35)" }} />
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.2)", marginLeft: "-14px" }} />
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          display: "flex", gap: "16px", padding: "20px",
-          background: "var(--bg-2)", border: "1px solid var(--border)",
-          borderRadius: "var(--r-md)", marginBottom: "12px",
-          alignItems: "flex-start",
-        }}>
-          <div style={{ width: "44px", height: "44px", borderRadius: "var(--r-sm)", background: "linear-gradient(135deg,#FF6B35 0%,#FF4500 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>🦞</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", marginBottom: "4px" }}>Lobster.cash virtual card</p>
-            <p style={{ fontSize: "13px", color: "var(--text-2)", lineHeight: 1.6, marginBottom: "12px" }}>
-              Fund your card with USDC on Solana. Your agent uses it to pay fiat bills automatically — no crypto knowledge needed for payees.
+          <div style={{ width: "44px", height: "28px", borderRadius: "6px", background: "linear-gradient(135deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.1) 100%)", border: "1px solid rgba(249,115,22,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>💳</div>
+          <div>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)", marginBottom: "4px" }}>Virtual Visa / Mastercard</p>
+            <p style={{ fontSize: "13px", color: "var(--text-3)", lineHeight: 1.6 }}>
+              Your USDC vault funds a virtual card your agent uses to pay any fiat bill, anywhere a card is accepted. We'll notify you when this feature launches.
             </p>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <a
-                href="https://lobster.cash/install"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  padding: "8px 16px",
-                  background: "linear-gradient(135deg,#FF6B35 0%,#FF3CAC 100%)",
-                  color: "white", fontWeight: 600, fontSize: "13px",
-                  borderRadius: "var(--r-sm)", textDecoration: "none",
-                  transition: "opacity 0.2s",
-                }}
-              >
-                Install Lobster →
-              </a>
-              <a
-                href="https://www.lobster.cash/docs/skill-compatibility-guide"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", fontSize: "12px", color: "var(--text-3)", textDecoration: "underline", padding: "8px 4px" }}
-              >
-                Compatibility guide
-              </a>
-            </div>
           </div>
-        </div>
-
-        <div style={{
-          display: "flex", gap: "10px", padding: "12px 14px",
-          background: "var(--blue-dim)", border: "1px solid rgba(0,102,255,0.15)",
-          borderRadius: "var(--r-sm)",
-        }}>
-          <span style={{ fontSize: "14px", flexShrink: 0 }}>💡</span>
-          <p style={{ fontSize: "12px", color: "var(--text-2)", lineHeight: 1.6 }}>
-            <strong style={{ color: "var(--text)" }}>How it works:</strong> Lobster card = fiat bills (rent, ConEd, Netflix). OWS vault = crypto transfers (ENS addresses, on-chain payees). Your agent routes each payment to the right rail automatically.
-          </p>
         </div>
       </div>
 
@@ -574,6 +560,7 @@ export default function OnboardPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("subscribe");
   const [vaultAddress, setVaultAddress] = useState<`0x${string}`>("0x");
+  const [solanaAddress, setSolanaAddress] = useState("");
   const [ensHandle, setEnsHandle] = useState("");
   const [authState, setAuthState] = useState<"pending" | "done" | "error">("pending");
 
@@ -676,14 +663,25 @@ export default function OnboardPage() {
           <VaultStep
             onComplete={(addr) => {
               setVaultAddress(addr as `0x${string}`);
+              setStep("solana");
+            }}
+          />
+        )}
+
+        {step === "solana" && (
+          <SolanaWalletStep
+            onComplete={(addr) => {
+              setSolanaAddress(addr);
               setStep("ens");
             }}
+            onSkip={() => setStep("ens")}
           />
         )}
 
         {step === "ens" && (
           <EnsStep
             vaultAddress={vaultAddress}
+            solanaAddress={solanaAddress || undefined}
             onClaimed={(handle) => {
               setEnsHandle(handle);
               setStep("setup");

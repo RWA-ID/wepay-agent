@@ -7,11 +7,11 @@ import { api } from "@/lib/api";
 
 type Props = {
   owsVaultAddress: `0x${string}`;
-  solanaCardAddress?: string;
+  solanaAddress?: string;
   onClaimed: (handle: string) => void;
 };
 
-export function SubdomainClaimer({ owsVaultAddress, solanaCardAddress, onClaimed }: Props) {
+export function SubdomainClaimer({ owsVaultAddress, solanaAddress, onClaimed }: Props) {
   const [handle, setHandle] = useState("");
   const [availability, setAvailability] = useState<"available" | "taken" | "invalid" | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -39,8 +39,8 @@ export function SubdomainClaimer({ owsVaultAddress, solanaCardAddress, onClaimed
     if (!WEPAY_REGISTRAR_ADDRESS) return;
     // Encode Solana address as bytes — base58 decode to raw 32-byte pubkey
     // If not provided, pass empty bytes (contract skips the Solana record)
-    const solanaBytes = solanaCardAddress
-      ? ("0x" + Buffer.from(base58Decode(solanaCardAddress)).toString("hex")) as `0x${string}`
+    const solanaBytes = solanaAddress
+      ? ("0x" + Buffer.from(base58Decode(solanaAddress)).toString("hex")) as `0x${string}`
       : "0x" as `0x${string}`;
     writeContract({
       address: WEPAY_REGISTRAR_ADDRESS,

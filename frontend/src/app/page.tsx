@@ -42,11 +42,11 @@ function TelegramIcon({ size = 20 }: { size?: number }) {
 
 const messages = [
   { from: "user",  text: "Pay my electric bill $87" },
-  { from: "agent", text: "✓ Charged $87.00 to your\nVisa virtual card 🟠\nConEd · Apr 13" },
+  { from: "agent", text: "✓ $87.00 USDC sent\nConEd · Base · Apr 13" },
   { from: "user",  text: "Pay rent on the 1st" },
   { from: "agent", text: "✓ $1,200 USDC scheduled\nApr 1 → landlord.eth" },
   { from: "user",  text: "What's my balance?" },
-  { from: "agent", text: "💰 842.60 USDC on Base\n💳 Virtual card: active\n\nFund: name.wepay.eth" },
+  { from: "agent", text: "💰 842.60 USDC on Base\n\nFund: name.wepay.eth" },
 ];
 
 // ── CSS iPhone mockup ──────────────────────────────────────────────────────
@@ -270,31 +270,17 @@ export default function LandingPage() {
                 {" "}— share it to receive USDC on Base or Solana.
               </p>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "#f97316", borderRadius: "var(--r-md)" }}>
-                <span style={{ fontSize: "18px" }}>💳</span>
-                <p style={{ fontSize: "13px", color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>
-                  Comes with a virtual Visa card — pay any fiat bill, anywhere.
-                </p>
-              </div>
-              {/* Lobster card image */}
-              <div style={{ position: "relative", maxWidth: "340px", borderRadius: "var(--r-lg)", overflow: "hidden", boxShadow: "0 8px 32px rgba(249,115,22,0.25)" }}>
-                <img
-                  src="/lobster-card.jpg"
-                  alt="Lobster.cash Virtual Card"
-                  style={{ width: "100%", display: "block", borderRadius: "var(--r-lg)" }}
-                />
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0,
-                  padding: "8px 14px",
-                  background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
-                  display: "flex", alignItems: "center", gap: "6px",
-                }}>
-                  <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>Powered by</span>
-                  <span style={{ fontSize: "13px", color: "#fff", fontWeight: 700, letterSpacing: "-0.01em" }}>Lobster.cash</span>
-                  <span style={{ fontSize: "13px" }}>🦞</span>
-                </div>
-              </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "rgba(153,69,255,0.08)", border: "1px solid rgba(153,69,255,0.2)", borderRadius: "var(--r-md)" }}>
+              <span style={{ fontSize: "18px" }}>⚡</span>
+              <p style={{ fontSize: "13px", color: "var(--text-2)", lineHeight: 1.5 }}>
+                Link any <strong style={{ color: "#9945FF" }}>Solana wallet</strong> — Phantom, Backpack, Ledger — to your ENS name.
+              </p>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "rgba(249,115,22,0.06)", border: "1px dashed rgba(249,115,22,0.3)", borderRadius: "var(--r-md)" }}>
+              <span style={{ fontSize: "18px" }}>💳</span>
+              <p style={{ fontSize: "13px", color: "var(--text-3)", lineHeight: 1.5 }}>
+                Virtual card — <strong style={{ color: "#f97316" }}>coming soon</strong>. Pay any fiat bill with USDC.
+              </p>
             </div>
           </div>
 
@@ -329,10 +315,10 @@ export default function LandingPage() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
           {[
-            { step: "01", title: "Subscribe & get set up", desc: "Pay $19.99/month via USDC. Your non-custodial vault, free ENS subdomain, Telegram agent, and virtual Visa card are provisioned automatically.", color: "var(--blue)", bg: "var(--blue-dim)" },
-            { step: "02", title: "Fund via your ENS", desc: "Share name.wepay.eth to receive USDC on Base or Solana — no wallet address needed. Funds flow to your vault and virtual card.", color: "var(--green)", bg: "var(--green-dim)" },
-            { step: "03", title: "Virtual card for fiat bills", desc: "Rent, utilities, phone — anything that needs a real card. Your agent charges your Visa virtual card funded by USDC. No crypto-savvy merchant needed.", color: "#f97316", bg: "rgba(249,115,22,0.08)" },
-            { step: "04", title: "On-chain for crypto payees", desc: "Paying a wallet or ENS address? WePay sends USDC directly on Base. Say \"Pay landlord.eth $1200\" and it's done in seconds.", color: "var(--blue-light)", bg: "var(--blue-dim)" },
+            { step: "01", title: "Subscribe & get set up", desc: "Pay $19.99/month via USDC. Your non-custodial vault, free ENS subdomain, and Telegram agent are provisioned automatically.", color: "var(--blue)", bg: "var(--blue-dim)" },
+            { step: "02", title: "Fund via your ENS", desc: "Share name.wepay.eth to receive USDC on Base or Solana — no wallet address needed. Funds flow directly to your vault.", color: "var(--green)", bg: "var(--green-dim)" },
+            { step: "03", title: "On-chain for crypto payees", desc: "Paying a wallet or ENS address? WePay sends USDC directly on Base. Say \"Pay landlord.eth $1200\" and it's done in seconds.", color: "var(--blue-light)", bg: "var(--blue-dim)" },
+            { step: "04", title: "Virtual card — coming soon", desc: "Pay rent, utilities, and subscriptions with a virtual card funded by USDC. No crypto knowledge needed for merchants. Evaluating Visa Intelligent Commerce.", color: "#f97316", bg: "rgba(249,115,22,0.08)" },
           ].map((item) => (
             <div key={item.step} className="card card-hover" style={{ padding: "28px" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "var(--r-sm)", background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
@@ -373,34 +359,36 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
-          {/* Fiat rail */}
-          <div className="card" style={{ padding: "32px", border: "1px solid rgba(249,115,22,0.3)", background: "rgba(249,115,22,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-              {/* Mini debit card */}
+          {/* Virtual card rail — coming soon */}
+          <div className="card" style={{ padding: "32px", border: "1px dashed rgba(249,115,22,0.3)", background: "rgba(249,115,22,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
               <div style={{
                 width: "44px", height: "28px", borderRadius: "6px",
-                background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                background: "rgba(249,115,22,0.15)",
+                border: "1px solid rgba(249,115,22,0.25)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(249,115,22,0.4)",
                 flexShrink: 0,
               }}>
                 <span style={{ fontSize: "12px" }}>💳</span>
               </div>
               <div>
-                <p style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "#f97316" }}>Virtual Visa · Fiat</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <p style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "#f97316" }}>Virtual Card · Fiat</p>
+                  <span style={{ padding: "2px 8px", borderRadius: "999px", background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.25)", fontSize: "10px", fontWeight: 600, color: "#f97316", fontFamily: "var(--font-mono)" }}>Coming soon</span>
+                </div>
                 <p style={{ fontSize: "12px", color: "var(--text-3)" }}>Any merchant, anywhere</p>
               </div>
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: "8px" }}>
               {["Pay electric, gas & water bills", "Phone, internet, subscriptions", "Online checkout — just like any Visa"].map(t => (
-                <li key={t} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "var(--text-2)" }}>
-                  <span style={{ color: "#f97316", marginTop: "1px" }}>✓</span>{t}
+                <li key={t} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "var(--text-3)" }}>
+                  <span style={{ color: "rgba(249,115,22,0.5)", marginTop: "1px" }}>○</span>{t}
                 </li>
               ))}
             </ul>
-            <div style={{ marginTop: "16px", padding: "8px 12px", background: "rgba(249,115,22,0.1)", borderRadius: "var(--r-sm)" }}>
-              <p style={{ fontSize: "11px", color: "#f97316", lineHeight: 1.5 }}>
-                Funded with USDC via <strong>name.wepay.eth</strong> · powered by Lobster.cash
+            <div style={{ marginTop: "16px", padding: "8px 12px", background: "rgba(249,115,22,0.06)", borderRadius: "var(--r-sm)", border: "1px solid rgba(249,115,22,0.15)" }}>
+              <p style={{ fontSize: "11px", color: "var(--text-3)", lineHeight: 1.5 }}>
+                Funded with USDC via <strong>name.wepay.eth</strong> · evaluating Visa Intelligent Commerce
               </p>
             </div>
           </div>
@@ -412,10 +400,10 @@ export default function LandingPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px" }}>
           {[
             { icon: "🔐", title: "Non-custodial",     desc: "Your seed phrase is yours alone. WePay never holds your keys or funds." },
-            { icon: "🌐", title: "ENS subdomain",     desc: "name.wepay.eth works on Base and Solana — share one name to fund both rails." },
-            { icon: "💳", title: "Virtual Visa card", desc: "Pay rent, utilities, subscriptions — any fiat bill charged to your USDC-funded virtual card.", accent: "#f97316" },
+            { icon: "🌐", title: "ENS subdomain",     desc: "name.wepay.eth resolves your ETH vault and Solana wallet — share one name, receive on any chain." },
+            { icon: "💳", title: "Virtual card",      desc: "Pay fiat bills with USDC — coming soon. Evaluating Visa Intelligent Commerce and other providers.", accent: "#f97316" },
             { icon: "🤖", title: "AI agent",          desc: "Natural language bill pay via Telegram. Forward invoices, schedule payments, check balance." },
-            { icon: "⛓️", title: "Base network",      desc: "Fast, cheap USDC on Base for on-chain payees. Solana for funding your virtual card." },
+            { icon: "⛓️", title: "Base network",      desc: "Fast, cheap USDC on Base for on-chain payees. Link your Solana wallet to receive on both chains." },
           ].map((feat: { icon: string; title: string; desc: string; accent?: string }) => (
             <div key={feat.title} className="card" style={{ padding: "24px", ...(feat.accent ? { border: "1px solid rgba(249,115,22,0.25)", background: "rgba(249,115,22,0.04)" } : {}) }}>
               <div style={{ fontSize: "28px", marginBottom: "12px" }}>{feat.icon}</div>
