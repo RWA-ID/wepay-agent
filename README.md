@@ -9,7 +9,7 @@ WePay is a subscription-powered personal finance platform where every user gets 
 ## How It Works
 
 ```
-User subscribes via Helio (USDC on Solana)
+User subscribes via Helio (USDC on Ethereum, Solana or Base)
         │
         ▼
 Backend webhook fires
