@@ -13,8 +13,9 @@ export default {
         },
       },
       fontFamily: {
-        mono: ["Space Mono", "monospace"],
-        sans: ["Inter", "sans-serif"],
+        heading: ["Syne", "sans-serif"],
+        mono:    ["DM Mono", "monospace"],
+        sans:    ["DM Sans", "sans-serif"],
       },
       boxShadow: {
         wepay:    "0 0 20px rgba(124, 58, 237, 0.25)",
