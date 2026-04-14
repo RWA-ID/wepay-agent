@@ -563,16 +563,18 @@ export default function OnboardPage() {
   const [solanaAddress, setSolanaAddress] = useState("");
   const [ensHandle, setEnsHandle] = useState("");
   const [authState, setAuthState] = useState<"pending" | "done" | "error">("pending");
+  const [retryCount, setRetryCount] = useState(0);
 
   // SIWE — sign in once wallet is connected, skip if token already exists
   useEffect(() => {
     if (!isConnected || !address || !walletClient) return;
     if (getAuthToken()) { setAuthState("done"); return; }
 
+    setAuthState("pending");
     signInWithEthereum(walletClient, address, chainId)
       .then((token) => { setAuthToken(token); setAuthState("done"); })
       .catch(() => setAuthState("error"));
-  }, [isConnected, address, walletClient, chainId]);
+  }, [isConnected, address, walletClient, chainId, retryCount]);
 
   // Wallet not connected guard
   if (!isConnected) {
@@ -595,27 +597,36 @@ export default function OnboardPage() {
     );
   }
 
-  // SIWE pending — show brief spinner while wallet signs
+  // SIWE pending — show spinner + wallet hint
   if (authState === "pending") {
     return (
-      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" }}>
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "32px" }}>
         <span className="spinner" style={{ width: "32px", height: "32px", borderWidth: "3px" }} />
-        <p style={{ fontSize: "14px", color: "var(--text-2)" }}>Signing in with your wallet…</p>
+        <p style={{ fontSize: "15px", fontWeight: 600, color: "var(--text)" }}>Signing in with your wallet…</p>
+        <p style={{ fontSize: "13px", color: "var(--text-2)", textAlign: "center", maxWidth: "300px" }}>
+          A signature request has been sent to your wallet.
+          If using WalletConnect, <strong style={{ color: "var(--text)" }}>open your wallet app</strong> and approve the sign-in message.
+        </p>
       </div>
     );
   }
 
-  // SIWE failed — let user retry
+  // SIWE failed — let user retry (retryCount re-triggers the effect)
   if (authState === "error") {
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "32px" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "40px", marginBottom: "12px" }}>❌</div>
           <p style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Signature failed</p>
-          <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "24px" }}>Please sign the message in your wallet to continue.</p>
+          <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "8px" }}>
+            Open your wallet app and approve the sign-in message, then tap Try again.
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-3)", marginBottom: "24px" }}>
+            Using WalletConnect? The request appears inside your wallet app (Phantom, MetaMask, etc.) — not in the browser.
+          </p>
           <button
             className="btn-primary"
-            onClick={() => { setAuthState("pending"); }}
+            onClick={() => setRetryCount(c => c + 1)}
             style={{ padding: "12px 28px" }}
           >
             Try again

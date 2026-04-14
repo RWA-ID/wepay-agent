@@ -25,12 +25,20 @@ authRouter.post("/siwe", async (req, res) => {
     }
 
     const siwe = new SiweMessage(message);
-    const result = await siwe.verify({ signature, suppressExceptions: true });
+    let result: Awaited<ReturnType<typeof siwe.verify>>;
+    try {
+      result = await siwe.verify({ signature });
+    } catch {
+      return res.status(401).json({
+        success: false,
+        error: { code: "INVALID_SIGNATURE", message: "Signature verification failed", statusCode: 401 },
+      });
+    }
 
     if (!result.success) {
       return res.status(401).json({
         success: false,
-        error: { code: "INVALID_SIGNATURE", message: result.error?.type ?? "Signature verification failed", statusCode: 401 },
+        error: { code: "INVALID_SIGNATURE", message: "Signature verification failed", statusCode: 401 },
       });
     }
 
