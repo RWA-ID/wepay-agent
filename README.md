@@ -2,7 +2,7 @@
 
 WePay is a subscription-powered personal finance platform where every user gets a permanent ENS identity (`handle.wepay.eth`), a non-custodial spending vault, and a private AI agent that pays their bills — on-chain via USDC on Base or fiat via a Lobster.cash virtual Visa card.
 
-**Live:** [wepay.eth](https://wepay.eth.limo) · **API:** [wepay-agent-production.up.railway.app](https://wepay-agent-production.up.railway.app/health)
+**Live:** [https://wepay.eth.link](https://wepay.eth.limo) · **API:** [wepay-agent-production.up.railway.app](https://wepay-agent-production.up.railway.app/health)
 
 ---
 
