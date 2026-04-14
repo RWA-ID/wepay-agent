@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { webhookRouter } from "./routes/webhooks.js";
+import { authRouter } from "./routes/auth.js";
 import { vaultRouter } from "./routes/vault.js";
 import { ensRouter } from "./routes/ens.js";
 import { payeesRouter } from "./routes/payees.js";
@@ -33,6 +34,7 @@ app.use(express.json());
 
 // ── Public routes (no auth required) ──────────────────────────────────────
 app.use("/webhooks", webhookRouter);
+app.use("/auth", authRouter);
 
 // ── Authenticated routes ───────────────────────────────────────────────────
 app.use("/vault", authMiddleware, requireAccess, vaultRouter);
