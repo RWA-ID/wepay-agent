@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
-import { FlipWords } from "@/components/FlipWords";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-// ── Icons ──────────────────────────────────────────────────────────────────
+// ─── Theme toggle icons ────────────────────────────────────────────────────
 
 function SunIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <circle cx="12" cy="12" r="5"/>
       <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
       <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
@@ -21,85 +20,133 @@ function SunIcon() {
     </svg>
   );
 }
-
 function MoonIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
   );
 }
 
-// ── iPhone mockup ──────────────────────────────────────────────────────────
+// ─── Animated word cycler ──────────────────────────────────────────────────
 
-const chatMessages = [
-  { from: "user",  text: "Pay my electric bill $87" },
-  { from: "agent", text: "✓ $87.00 USDC sent\nConEd · Base · Apr 13" },
-  { from: "user",  text: "Pay rent on the 1st" },
-  { from: "agent", text: "✓ $1,200 USDC scheduled\nApr 1 · landlord.eth" },
-  { from: "user",  text: "What's my balance?" },
-  { from: "agent", text: "$42.50 USDC on Base\n\nFund: name.wepay.eth" },
+const BILLS = ["Rent", "Utilities", "Subscriptions", "Car Insurance", "Anything"];
+
+function CyclingWord() {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => { setIdx(i => (i + 1) % BILLS.length); setVisible(true); }, 350);
+    }, 2600);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <span
+      className="text-blue-400 inline-block"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-8px)",
+        transition: "opacity 0.35s ease, transform 0.35s ease",
+      }}
+    >
+      {BILLS[idx]}
+    </span>
+  );
+}
+
+// ─── iPhone chat mockup ────────────────────────────────────────────────────
+
+const MESSAGES = [
+  { from: "u", text: "Pay my electric bill $87" },
+  { from: "a", text: "✓ $87.00 USDC sent\nConEd · Base · just now" },
+  { from: "u", text: "Schedule rent for the 1st" },
+  { from: "a", text: "✓ $1,200 USDC scheduled\nApr 1 · landlord.eth" },
+  { from: "u", text: "What's my balance?" },
+  { from: "a", text: "$2,450.00 USDC\nname.wepay.eth" },
 ];
 
-function IPhoneMockup() {
+function Phone() {
   return (
-    <div className="w-72 rounded-[2.5rem] border-8 border-slate-700 shadow-2xl overflow-hidden flex flex-col bg-slate-100">
-      {/* Notch */}
-      <div className="bg-slate-800 h-7 flex items-center justify-center shrink-0">
-        <div className="w-20 h-4 bg-slate-900 rounded-full" />
-      </div>
-
-      {/* Chat header */}
-      <div className="bg-white px-4 py-3 border-b border-slate-200 flex items-center gap-3 shrink-0">
-        <div className="size-9 rounded-full bg-blue-100 flex items-center justify-center text-lg">💸</div>
-        <div>
-          <p className="font-bold text-slate-900 text-sm leading-tight">WePay Agent</p>
-          <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-blue-500 inline-block" />
-            online
-          </p>
+    <div
+      className="relative w-[290px] shrink-0"
+      style={{ filter: "drop-shadow(0 32px 48px rgba(0,0,0,0.6))" }}
+    >
+      {/* Phone body */}
+      <div className="rounded-[2.75rem] border-[9px] border-slate-700 overflow-hidden flex flex-col bg-white">
+        {/* Notch bar */}
+        <div className="bg-slate-900 h-7 flex items-center justify-center shrink-0">
+          <div className="w-[88px] h-[18px] bg-black rounded-full" />
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="bg-slate-50 px-3 py-3 flex flex-col gap-2.5">
-        {chatMessages.map((msg, i) => (
-          <div key={i} className={cn("flex", msg.from === "user" ? "justify-end" : "justify-start")}>
-            <div className={cn(
-              "max-w-[82%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-line shadow-sm",
-              msg.from === "user"
-                ? "bg-blue-600 text-white rounded-tr-sm"
-                : "bg-white border border-slate-200 text-slate-800 rounded-tl-sm"
-            )}>
-              {msg.text}
-            </div>
+        {/* Chat header */}
+        <div className="bg-white px-4 py-2.5 border-b border-slate-100 flex items-center gap-2.5 shrink-0">
+          <div className="size-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">W</div>
+          <div className="min-w-0">
+            <p className="font-semibold text-slate-900 text-[13px] leading-none mb-0.5">WePay Agent</p>
+            <p className="text-[11px] text-blue-500 flex items-center gap-1">
+              <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
+              online
+            </p>
           </div>
-        ))}
-      </div>
-
-      {/* Input */}
-      <div className="bg-white px-3 py-2 border-t border-slate-200 flex items-center gap-2 shrink-0">
-        <div className="flex-1 bg-slate-100 rounded-full h-8 px-4 flex items-center text-slate-400 text-xs">
-          Message
         </div>
-        <div className="size-8 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
-          <svg className="size-3.5 text-white translate-x-px" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-          </svg>
-        </div>
-      </div>
 
-      {/* Home bar */}
-      <div className="bg-white h-5 flex items-center justify-center shrink-0">
-        <div className="w-20 h-1 bg-slate-300 rounded-full" />
+        {/* Messages */}
+        <div className="bg-slate-50 px-3 py-2.5 flex flex-col gap-2 min-h-0">
+          {MESSAGES.map((m, i) => (
+            <div key={i} className={cn("flex", m.from === "u" ? "justify-end" : "justify-start")}>
+              <div className={cn(
+                "max-w-[78%] px-3 py-2 text-[11.5px] leading-snug whitespace-pre-line",
+                m.from === "u"
+                  ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
+                  : "bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm shadow-sm"
+              )}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className="bg-white border-t border-slate-100 px-3 py-2 flex items-center gap-2 shrink-0">
+          <div className="flex-1 bg-slate-100 rounded-full h-7 px-3 text-[11px] text-slate-400 flex items-center">
+            Message WePay…
+          </div>
+          <div className="size-7 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
+            <svg className="size-3 text-white translate-x-px" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Home bar */}
+        <div className="bg-white h-4 flex items-center justify-center shrink-0">
+          <div className="w-[72px] h-[3px] bg-slate-300 rounded-full" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
+// ─── Main page ─────────────────────────────────────────────────────────────
 
-const flipWords = ["Rent", "Cards", "Utilities", "Subscriptions", "Everything"];
+const STEPS = [
+  { n: "01", title: "Subscribe",       body: "Pay $19.99/mo via USDC. Your non-custodial OWS vault, free ENS subdomain, and Telegram agent are live immediately." },
+  { n: "02", title: "Fund your vault", body: "Share name.wepay.eth to receive USDC on Base or Solana. No wallet address — just your name." },
+  { n: "03", title: "Text to pay",     body: 'Message WePay on Telegram: "Pay landlord.eth $1,200" — USDC is sent on Base in seconds.' },
+  { n: "04", title: "Virtual card ↗",  body: "Coming soon — pay any fiat bill with USDC via virtual Visa. Evaluating Visa Intelligent Commerce.", dim: true },
+];
+
+const FEATURES = [
+  { icon: "🔐", title: "Non-custodial",  body: "Your seed phrase is yours alone. WePay never holds keys." },
+  { icon: "🌐", title: "ENS subdomain",  body: "name.wepay.eth resolves ETH + Solana. One name, every chain." },
+  { icon: "⛓️", title: "Base network",   body: "Fast, cheap USDC on Base. Phantom/Backpack supported too." },
+  { icon: "🤖", title: "AI agent",       body: "Natural language bill pay on Telegram. No app needed." },
+  { icon: "💳", title: "Virtual card",   body: "Pay fiat with USDC — coming soon.", dim: true },
+];
 
 export default function LandingPage() {
   const { isConnected } = useAccount();
@@ -114,168 +161,178 @@ export default function LandingPage() {
     <div className="min-h-dvh" style={{ background: "var(--bg)", color: "var(--text)" }}>
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)] flex items-center justify-between px-6 lg:px-10 h-14">
-        <span className="font-heading font-extrabold text-base flex items-center gap-2">
-          💸 WePay
+      <header
+        className="sticky top-0 z-50 h-14 flex items-center justify-between px-6 lg:px-10"
+        style={{ borderBottom: "1px solid var(--border)", background: "var(--bg)" }}
+      >
+        <span className="font-heading font-extrabold text-base tracking-tight flex items-center gap-2">
+          💸 <span>WePay</span>
         </span>
         <div className="flex items-center gap-3">
           <button
             onClick={toggle}
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="size-9 rounded-lg flex items-center justify-center border border-[var(--border)] bg-[var(--bg-3)] hover:border-[var(--border-2)] transition-colors cursor-pointer"
-            style={{ color: "var(--text-2)" }}
+            aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
+            className="size-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+            style={{ border: "1px solid var(--border)", background: "var(--bg-3)", color: "var(--text-3)" }}
           >
             {theme === "dark" ? <SunIcon /> : <MoonIcon />}
           </button>
           <ConnectButton accountStatus="avatar" chainStatus="none" showBalance={false} label="Connect Wallet" />
         </div>
-      </nav>
+      </header>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 pt-20 pb-24 bg-[var(--bg-2)]">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="px-6 lg:px-16 py-20 lg:py-28">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
 
-          {/* Left */}
-          <div>
-            <div className="flex flex-wrap gap-2 mb-7">
-              <span className="badge badge-green">Non-custodial</span>
-              <span className="badge badge-blue">ENS-native</span>
-              <span className="badge badge-blue">AI-powered</span>
+          {/* Text side */}
+          <div className="flex-1 min-w-0">
+            {/* Live badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 font-mono text-xs uppercase tracking-widest font-medium text-blue-400"
+              style={{ background: "var(--blue-dim)", border: "1px solid rgba(0,102,255,0.2)" }}>
+              <span className="size-1.5 rounded-full bg-emerald-400 inline-block" style={{ boxShadow: "0 0 6px #34d399" }} />
+              Live on Base
             </div>
 
-            <h1 className="font-heading font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[1.1] tracking-tight text-balance mb-5">
-              Text WePay<br />
-              Agent To{" "}
-              <span className="text-blue-400">
-                <FlipWords words={flipWords} duration={2800} className="" />
-              </span>
+            {/* Headline */}
+            <h1 className="font-heading font-black tracking-tight text-balance mb-6" style={{ fontSize: "clamp(44px, 7vw, 84px)", lineHeight: 1.0 }}>
+              Pay <CyclingWord /><br />
+              with a text<br />
+              message.
             </h1>
 
-            <p className="text-base sm:text-lg leading-relaxed text-pretty mb-8 max-w-lg" style={{ color: "var(--text-2)" }}>
-              Your personal AI agent pays bills from anywhere, anytime — just send a quick message on Telegram.
-              No app. No login. No hassle.
+            {/* Sub */}
+            <p className="text-lg leading-relaxed text-pretty mb-10 max-w-lg" style={{ color: "var(--text-2)" }}>
+              WePay is a personal AI finance agent that lives in Telegram. It pays your bills directly from a non-custodial USDC vault — no app, no login, just a message.
             </p>
 
-            <div className="space-y-2.5 mb-9">
-              <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-3)] shadow-sm">
-                <span className="text-green-400 font-bold text-sm mt-px shrink-0">✓</span>
-                <p className="text-sm" style={{ color: "var(--text-2)" }}>
-                  You get <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--blue-dim)] text-blue-400">name.wepay.eth</code> — share it to receive USDC on Base or Solana.
-                </p>
-              </div>
-              <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-3)] shadow-sm">
-                <span className="text-green-400 font-bold text-sm mt-px shrink-0">✓</span>
-                <p className="text-sm" style={{ color: "var(--text-2)" }}>
-                  Link any Solana wallet — Phantom, Backpack, Ledger — to your ENS name.
-                </p>
-              </div>
-              <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-3)] shadow-sm opacity-60">
-                <span className="text-slate-500 text-sm mt-px shrink-0">○</span>
-                <p className="text-sm" style={{ color: "var(--text-2)" }}>
-                  Virtual card — <span className="text-orange-400 font-semibold">coming soon</span>. Pay any fiat bill with USDC.
-                </p>
-              </div>
+            {/* Bullets */}
+            <div className="space-y-2 mb-10">
+              {[
+                { ok: true,  text: "Free ENS subdomain — name.wepay.eth" },
+                { ok: true,  text: "Solana wallet linked to your ENS" },
+                { ok: false, text: "Virtual Visa card — coming soon" },
+              ].map(({ ok, text }) => (
+                <div key={text} className={cn("flex items-center gap-3 text-sm", !ok && "opacity-50")}>
+                  <span className={cn("font-bold text-xs shrink-0", ok ? "text-emerald-400" : "text-slate-500")}>
+                    {ok ? "✓" : "○"}
+                  </span>
+                  <span style={{ color: "var(--text-2)" }}>{text}</span>
+                </div>
+              ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <ConnectButton label="Connect Wallet to Get Started" />
-              <p className="text-sm" style={{ color: "var(--text-2)" }}>
-                Starting at <strong className="text-blue-400">$19.99 / month</strong>
+            {/* CTA row */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <ConnectButton label="Get Started — $19.99 / mo" />
+              <p className="text-sm" style={{ color: "var(--text-3)" }}>
+                MetaMask · Coinbase · WalletConnect
               </p>
             </div>
-            <p className="text-xs mt-4" style={{ color: "var(--text-3)" }}>
-              MetaMask · Coinbase Wallet · WalletConnect · and more
-            </p>
           </div>
 
-          {/* Right */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="p-4 rounded-3xl bg-[var(--bg-3)] border border-[var(--border)] shadow-xl">
-              <IPhoneMockup />
-            </div>
+          {/* Phone side */}
+          <div className="shrink-0 flex items-center justify-center">
+            <Phone />
           </div>
         </div>
       </section>
 
-      {/* ── How it works ──────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 py-20 border-t border-[var(--border)]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl tracking-tight text-balance mb-3">
-              Paying bills has never been this easy
+      {/* ── Stat strip ──────────────────────────────────────────────────── */}
+      <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg-2)" }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-16 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { stat: "$0",       label: "Withdrawal fees" },
+            { stat: "< 5s",     label: "On-chain settlement" },
+            { stat: "100%",     label: "Non-custodial" },
+            { stat: "∞",        label: "Payees supported" },
+          ].map(({ stat, label }) => (
+            <div key={label} className="text-center">
+              <p className="font-heading font-black text-2xl sm:text-3xl text-blue-400 tabular-nums mb-0.5">{stat}</p>
+              <p className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-3)" }}>{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── How it works ────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-16 py-20" style={{ background: "var(--bg)" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12">
+            <p className="font-mono text-xs uppercase tracking-widest text-blue-400 mb-3">How it works</p>
+            <h2 className="font-heading font-black text-3xl sm:text-4xl tracking-tight text-balance">
+              From signup to paid bills<br />in under 5 minutes.
             </h2>
-            <p className="text-base text-pretty max-w-sm mx-auto" style={{ color: "var(--text-2)" }}>
-              From anywhere in the world — just message WePay on Telegram.
-            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { step: "01", title: "Subscribe & get set up",     desc: "Pay $19.99/month via USDC. Your non-custodial vault, ENS subdomain, and Telegram agent are provisioned automatically." },
-              { step: "02", title: "Fund via your ENS",          desc: "Share name.wepay.eth to receive USDC on Base or Solana — no wallet address needed." },
-              { step: "03", title: "Pay crypto payees on-chain", desc: 'Say "Pay landlord.eth $1200" and WePay sends USDC directly on Base in seconds.' },
-              { step: "04", title: "Virtual card — coming soon", desc: "Pay rent, utilities, and subscriptions with a virtual card funded by USDC.", muted: true },
-            ].map(({ step, title, desc, muted }) => (
-              <div key={step} className={cn(
-                "rounded-2xl border p-6 shadow-sm",
-                "bg-[var(--bg-2)] border-[var(--border)]",
-                muted && "opacity-60"
-              )}>
-                <p className={cn("font-mono text-xs font-bold mb-4 tabular-nums", muted ? "text-orange-400" : "text-blue-400")}>
-                  {step}
-                </p>
-                <h3 className="font-heading font-bold text-sm mb-2 text-balance">{title}</h3>
-                <p className="text-xs leading-relaxed text-pretty" style={{ color: "var(--text-2)" }}>{desc}</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px"
+            style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "16px", overflow: "hidden" }}>
+            {STEPS.map(({ n, title, body, dim }) => (
+              <div key={n} className={cn("p-6 lg:p-7", dim && "opacity-55")} style={{ background: "var(--bg-2)" }}>
+                <p className="font-mono text-xs text-blue-400 font-bold mb-5 tabular-nums">{n}</p>
+                <h3 className="font-heading font-bold text-base mb-2.5 text-balance">{title}</h3>
+                <p className="text-sm leading-relaxed text-pretty" style={{ color: "var(--text-2)" }}>{body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Payment rails ─────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 py-20 border-t border-[var(--border)] bg-[var(--bg-2)]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight text-balance mb-2">
-              Two ways to pay — one agent handles both
+      {/* ── Two rails ───────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-16 py-20" style={{ background: "var(--bg-2)", borderTop: "1px solid var(--border)" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12">
+            <p className="font-mono text-xs uppercase tracking-widest text-blue-400 mb-3">Payment rails</p>
+            <h2 className="font-heading font-black text-3xl sm:text-4xl tracking-tight text-balance">
+              One agent.<br />Two ways to pay.
             </h2>
-            <p className="text-sm text-pretty" style={{ color: "var(--text-2)" }}>
-              Crypto payees and fiat bills. WePay routes each payment automatically.
-            </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-3)] p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-2xl">⛓️</span>
+            {/* On-chain */}
+            <div className="rounded-2xl p-7" style={{ background: "var(--bg-3)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="size-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ background: "var(--blue-dim)" }}>⛓️</div>
                 <div>
                   <p className="font-heading font-bold text-sm">On-chain · Base USDC</p>
-                  <p className="text-xs" style={{ color: "var(--text-3)" }}>ENS names, wallet addresses</p>
+                  <p className="font-mono text-xs mt-0.5" style={{ color: "var(--text-3)" }}>Available now</p>
                 </div>
               </div>
               <ul className="space-y-3">
-                {["Pay landlord.eth $1,200", "Send USDC to 0xAbCd…", "Schedule recurring on-chain payments"].map(t => (
-                  <li key={t} className="flex items-start gap-2.5 text-sm">
-                    <span className="text-green-400 shrink-0 mt-px">✓</span>
+                {[
+                  "Pay any ENS name or wallet address",
+                  "USDC on Base — fast & cheap",
+                  "Schedule recurring payments",
+                  "Full transaction history",
+                ].map(t => (
+                  <li key={t} className="flex items-start gap-3 text-sm">
+                    <span className="text-emerald-400 shrink-0 mt-0.5 font-bold">✓</span>
                     <span style={{ color: "var(--text-2)" }}>{t}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-dashed border-orange-500/30 bg-orange-500/5 p-8 opacity-70">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">💳</span>
-                <div className="flex items-center gap-2 flex-wrap">
+            {/* Virtual card */}
+            <div className="rounded-2xl p-7 opacity-65" style={{ background: "var(--bg-3)", border: "1px dashed rgba(251,146,60,0.35)" }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="size-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ background: "rgba(251,146,60,0.1)" }}>💳</div>
+                <div>
                   <p className="font-heading font-bold text-sm text-orange-400">Virtual Card · Fiat</p>
-                  <span className="badge font-mono text-[10px]" style={{ background: "rgba(249,115,22,0.1)", color: "#f97316", border: "1px solid rgba(249,115,22,0.25)", padding: "2px 8px" }}>
-                    Coming soon
-                  </span>
+                  <p className="font-mono text-xs mt-0.5" style={{ color: "var(--text-3)" }}>Coming soon</p>
                 </div>
               </div>
-              <p className="text-xs mb-4" style={{ color: "var(--text-3)" }}>Any merchant, anywhere</p>
+              <p className="text-xs mb-5" style={{ color: "var(--text-3)" }}>
+                Evaluating Visa Intelligent Commerce to issue virtual cards funded by USDC.
+              </p>
               <ul className="space-y-3">
-                {["Pay electric, gas & water bills", "Phone, internet, subscriptions", "Online checkout — just like any Visa"].map(t => (
-                  <li key={t} className="flex items-start gap-2.5 text-sm">
-                    <span className="text-orange-400/50 shrink-0 mt-px">○</span>
+                {[
+                  "Electric, gas & water bills",
+                  "Phone & internet subscriptions",
+                  "Any online merchant — just like Visa",
+                ].map(t => (
+                  <li key={t} className="flex items-start gap-3 text-sm">
+                    <span className="text-orange-400/60 shrink-0 mt-0.5">○</span>
                     <span style={{ color: "var(--text-3)" }}>{t}</span>
                   </li>
                 ))}
@@ -285,52 +342,53 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 py-20 border-t border-[var(--border)]">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { icon: "🔐", title: "Non-custodial", desc: "Your seed phrase is yours alone. WePay never holds your keys or funds." },
-            { icon: "🌐", title: "ENS subdomain",  desc: "name.wepay.eth resolves your ETH vault and Solana wallet — one name, any chain." },
-            { icon: "💳", title: "Virtual card",   desc: "Pay fiat bills with USDC — coming soon.", muted: true },
-            { icon: "🤖", title: "AI agent",       desc: "Natural language bill pay via Telegram. Forward invoices, schedule payments." },
-            { icon: "⛓️", title: "Base network",   desc: "Fast, cheap USDC on Base for on-chain payees. Link your Solana wallet too." },
-          ].map(({ icon, title, desc, muted }) => (
-            <div key={title} className={cn(
-              "rounded-2xl border p-5 shadow-sm",
-              "bg-[var(--bg-2)] border-[var(--border)]",
-              muted && "opacity-60"
-            )}>
-              <div className="text-2xl mb-3">{icon}</div>
-              <h3 className={cn("font-heading font-bold text-sm mb-2 text-balance", muted ? "text-orange-400" : "")}>{title}</h3>
-              <p className="text-xs leading-relaxed text-pretty" style={{ color: "var(--text-2)" }}>{desc}</p>
-            </div>
-          ))}
+      {/* ── Features ────────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-16 py-20" style={{ background: "var(--bg)", borderTop: "1px solid var(--border)" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {FEATURES.map(({ icon, title, body, dim }) => (
+              <div key={title} className={cn("rounded-xl p-5", dim && "opacity-55")}
+                style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+                <div className="text-2xl mb-3">{icon}</div>
+                <p className={cn("font-heading font-bold text-sm mb-1.5 text-balance", dim && "text-orange-400")}>{title}</p>
+                <p className="text-xs leading-relaxed text-pretty" style={{ color: "var(--text-2)" }}>{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Trust ─────────────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 py-20 border-t border-[var(--border)] bg-[var(--bg-2)]">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="font-heading font-semibold text-xl sm:text-2xl leading-snug text-balance mb-4">
-            WePay <span className="text-blue-400">never holds your keys</span>.
-            Your vault is generated locally and you receive your seed phrase exactly once.
-          </p>
-          <p className="text-sm text-pretty leading-relaxed" style={{ color: "var(--text-2)" }}>
+      {/* ── Trust ───────────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-16 py-20" style={{ background: "var(--bg-2)", borderTop: "1px solid var(--border)" }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-blue-400 mb-5">Security</p>
+          <h2 className="font-heading font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight text-balance mb-5 leading-tight">
+            WePay <span className="text-blue-400">never holds your keys.</span><br />
+            Your vault. Your funds. Always.
+          </h2>
+          <p className="text-base leading-relaxed text-pretty" style={{ color: "var(--text-2)" }}>
+            Your vault is generated locally — you receive your seed phrase once and only once.
             Subdomains are permanent ERC-1155 NFTs with{" "}
-            <code className="font-mono text-xs text-blue-400">PARENT_CANNOT_CONTROL</code>{" "}
-            burned — WePay can never reclaim them.
+            <code className="font-mono text-sm text-blue-400">PARENT_CANNOT_CONTROL</code>{" "}
+            burned in. WePay can never reclaim them.
           </p>
+          <div className="mt-10">
+            <ConnectButton label="Get Started — $19.99 / mo" />
+          </div>
         </div>
       </section>
 
-      {/* ── Footer ────────────────────────────────────────────────────────── */}
-      <footer className="px-6 lg:px-12 py-6 text-center text-xs border-t border-[var(--border)]" style={{ color: "var(--text-3)" }}>
-        © 2026 WePay ·{" "}
-        <a href="https://wepay.eth.limo" className="hover:text-[var(--text-2)] transition-colors">wepay.eth</a>
-        {" "}· Built on{" "}
-        <a href="https://ens.domains" className="text-blue-400 hover:text-blue-300 transition-colors">ENS</a>
-        {" · "}
-        <a href="https://base.org" className="text-blue-400 hover:text-blue-300 transition-colors">Base</a>
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer className="px-6 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        style={{ borderTop: "1px solid var(--border)", color: "var(--text-3)" }}>
+        <span>© 2026 WePay</span>
+        <div className="flex items-center gap-4">
+          <a href="https://wepay.eth.limo" className="hover:text-[var(--text-2)] transition-colors">wepay.eth</a>
+          <span style={{ color: "var(--border-2)" }}>·</span>
+          <a href="https://ens.domains" className="text-blue-400 hover:text-blue-300 transition-colors">ENS</a>
+          <span style={{ color: "var(--border-2)" }}>·</span>
+          <a href="https://base.org" className="text-blue-400 hover:text-blue-300 transition-colors">Base</a>
+        </div>
       </footer>
     </div>
   );
