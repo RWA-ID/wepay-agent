@@ -10,6 +10,7 @@
     "persistTier": "pinata-ipfs"
   },
   "secrets": [
+    "ANTHROPIC_API_KEY",
     "PINATA_JWT",
     "PINATA_GATEWAY",
     "OWS_VAULT_DIR",
